@@ -182,7 +182,55 @@ public class WebhookController {
 
 ## 5. Configuración personalizada (opcional - SecurityConfig.java)
 
-Si necesitas personalizar los endpoints protegidos, puedes crear tu propia configuración:
+### Opción 1: Usar el builder de URLs (Recomendado)
+
+La forma más fácil de personalizar las URLs es usando el builder `SecurityUrlsConfig`:
+
+```java
+package com.miapp.config;
+
+import com.plug.security.config.SecurityUrlsConfig;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class SecurityConfig {
+    
+    @Bean
+    public SecurityUrlsConfig securityUrlsConfig() {
+        return SecurityUrlsConfig.builder()
+            // URLs públicas (no requieren autenticación)
+            .addPublicUrls("/public/**")
+            .addPublicUrls("/health", "/info")
+            .addPublicUrls("/actuator/**")
+            .addPublicUrls("/swagger-ui/**", "/v3/api-docs/**")
+            
+            // URLs protegidas (requieren JWT válido)
+            .addProtectedUrls("/webhooks/**")
+            .addProtectedUrls("/api/**")
+            
+            .build();
+    }
+}
+```
+
+**Ejemplo: Partir de las URLs por defecto y agregar más**
+
+```java
+@Bean
+public SecurityUrlsConfig securityUrlsConfig() {
+    return SecurityUrlsConfig.withDefaults()
+        // Agregar URLs públicas adicionales
+        .addPublicUrls("/public/**", "/health")
+        // Agregar URLs protegidas adicionales
+        .addProtectedUrls("/api/**", "/admin/**")
+        .build();
+}
+```
+
+### Opción 2: Sobrescribir el SecurityFilterChain completo
+
+Si necesitas un control total sobre la configuración de seguridad:
 
 ```java
 package com.miapp.config;

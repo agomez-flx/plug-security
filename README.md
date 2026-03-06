@@ -69,34 +69,70 @@ La librería configura automáticamente los siguientes endpoints:
 **Denegados:**
 - Cualquier otro endpoint no configurado
 
-### 3. Personalización (Opcional)
+### 3. Personalización de URLs (Opcional)
 
-Si necesitas personalizar los endpoints protegidos, puedes sobrescribir el bean `SecurityFilterChain`:
+La librería proporciona un builder para personalizar fácilmente las URLs públicas y protegidas:
 
 ```java
 @Configuration
 public class CustomSecurityConfig {
     
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, 
-                                                   JwtDecoder jwtDecoder,
-                                                   SecurityExceptionHandler handler) throws Exception {
-        http
-            .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .csrf(csrf -> csrf.disable())
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/public/**").permitAll()
-                .requestMatchers("/api/**").authenticated()
-                .anyRequest().denyAll()
-            )
-            .oauth2ResourceServer(oauth -> oauth
-                .jwt(jwt -> jwt.decoder(jwtDecoder))
-            );
-        
-        return http.build();
+    public SecurityUrlsConfig securityUrlsConfig() {
+        return SecurityUrlsConfig.builder()
+            // URLs públicas (no requieren autenticación)
+            .addPublicUrls("/public/**", "/health", "/info")
+            .addPublicUrls("/swagger-ui/**", "/v3/api-docs/**")
+            
+            // URLs protegidas (requieren JWT válido)
+            .addProtectedUrls("/api/**", "/webhooks/**")
+            .addProtectedUrls("/admin/**")
+            
+            .build();
     }
 }
 ```
+
+**Ejemplo 1: Partir desde cero (sin URLs por defecto)**
+
+```java
+@Bean
+public SecurityUrlsConfig securityUrlsConfig() {
+    return SecurityUrlsConfig.builder()
+        .addPublicUrls("/health")
+        .addProtectedUrls("/api/**")
+        .build();
+}
+```
+
+**Ejemplo 2: Usar URLs por defecto y agregar más**
+
+```java
+@Bean
+public SecurityUrlsConfig securityUrlsConfig() {
+    return SecurityUrlsConfig.withDefaults()
+        // Agregar URLs adicionales
+        .addPublicUrls("/public/**", "/health")
+        .addProtectedUrls("/api/**")
+        .build();
+}
+```
+
+**Ejemplo 3: Usar URLs por defecto y limpiar selectivamente**
+
+```java
+@Bean
+public SecurityUrlsConfig securityUrlsConfig() {
+    return SecurityUrlsConfig.withDefaults()
+        .clearProtectedUrls()  // Limpiar las protegidas por defecto
+        .addProtectedUrls("/api/**")  // Agregar las propias
+        .build();
+}
+```
+
+**URLs por defecto de la librería:**
+- **Públicas:** `/oauth/**`, `/actuator/**`, `/swagger-ui/**`, `/v3/api-docs/**`
+- **Protegidas:** `/webhooks/**`
 
 ## Uso
 
