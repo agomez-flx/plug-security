@@ -1,0 +1,27 @@
+# Ignorar archivos de compilación
+target/
+*.class
+*.jar
+*.war
+*.ear
+
+# Ignorar archivos de IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+
+# Ignorar archivos de sistema
+.DS_Store
+Thumbs.db
+
+# Ignorar logs
+*.log
+
+# Ignorar archivos temporales
+*.tmp
+*.bak
+*.swp
+*~

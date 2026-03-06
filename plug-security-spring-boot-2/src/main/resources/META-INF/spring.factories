@@ -1,0 +1,6 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.plug.security.config.MethodSecurityConfig,\
+com.plug.security.config.JwtDecoderConfig,\
+com.plug.security.config.ResourceServerConfig,\
+com.plug.security.handler.SecurityExceptionHandler,\
+com.plug.security.evaluator.CustomPermissionEvaluator
