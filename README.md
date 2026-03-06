@@ -1,27 +1,27 @@
 # Plug Security Library
 
-Librería Java para validación de tokens JWT con soporte para Spring Boot 2 y Spring Boot 3.
+Java library for JWT token validation with support for Spring Boot 2 and Spring Boot 3.
 
-## Características
+## Features
 
-- ✅ Validación de tokens JWT con firma HS256
-- ✅ Evaluación de permisos basada en claims y scopes
-- ✅ Configuración de seguridad pre-configurada
-- ✅ Manejo de excepciones con respuestas JSON personalizadas
-- ✅ Compatible con Spring Boot 2.x y Spring Boot 3.x
-- ✅ Auto-configuración con Spring Boot
+- ✅ JWT token validation with HS256 signature
+- ✅ Permission evaluation based on claims and scopes
+- ✅ Pre-configured security settings
+- ✅ Custom JSON error responses
+- ✅ Compatible with Spring Boot 2.x and Spring Boot 3.x
+- ✅ Spring Boot auto-configuration
 
-## Requisitos
+## Requirements
 
 - Java 21
 - Maven 3.6+
-- Spring Boot 2.x o 3.x
+- Spring Boot 2.x or 3.x
 
-## Instalación
+## Installation
 
-### Para Spring Boot 3.x
+### For Spring Boot 3.x
 
-Agregar la dependencia en tu `pom.xml`:
+Add the dependency to your `pom.xml`:
 
 ```xml
 <dependency>
@@ -31,9 +31,9 @@ Agregar la dependencia en tu `pom.xml`:
 </dependency>
 ```
 
-### Para Spring Boot 2.x
+### For Spring Boot 2.x
 
-Agregar la dependencia en tu `pom.xml`:
+Add the dependency to your `pom.xml`:
 
 ```xml
 <dependency>
@@ -43,35 +43,35 @@ Agregar la dependencia en tu `pom.xml`:
 </dependency>
 ```
 
-## Configuración
+## Configuration
 
-### 1. Variable de entorno
+### 1. Environment Variable
 
-Configurar la clave de firma del token JWT:
+Configure the JWT token signing key:
 
 ```properties
-TOKEN_SIGNER_KEY=tu-clave-secreta-super-segura-de-al-menos-256-bits
+TOKEN_SIGNER_KEY=your-super-secure-secret-key-at-least-256-bits
 ```
 
-### 2. Endpoints protegidos
+### 2. Protected Endpoints
 
-La librería configura automáticamente los siguientes endpoints:
+The library automatically configures the following endpoints:
 
-**Públicos (no requieren autenticación):**
+**Public (no authentication required):**
 - `/oauth/**`
 - `/actuator/**`
 - `/swagger-ui/**`
 - `/v3/api-docs/**`
 
-**Protegidos (requieren JWT válido):**
+**Protected (require valid JWT):**
 - `/webhooks/**`
 
-**Denegados:**
-- Cualquier otro endpoint no configurado
+**Denied:**
+- Any other endpoint not configured
 
-### 3. Personalización de URLs (Opcional)
+### 3. URL Customization (Optional)
 
-La librería proporciona un builder para personalizar fácilmente las URLs públicas y protegidas:
+The library provides a builder to easily customize public and protected URLs:
 
 ```java
 @Configuration
@@ -80,11 +80,11 @@ public class CustomSecurityConfig {
     @Bean
     public SecurityUrlsConfig securityUrlsConfig() {
         return SecurityUrlsConfig.builder()
-            // URLs públicas (no requieren autenticación)
+            // Public URLs (no authentication required)
             .addPublicUrls("/public/**", "/health", "/info")
             .addPublicUrls("/swagger-ui/**", "/v3/api-docs/**")
             
-            // URLs protegidas (requieren JWT válido)
+            // Protected URLs (require valid JWT)
             .addProtectedUrls("/api/**", "/webhooks/**")
             .addProtectedUrls("/admin/**")
             
@@ -93,7 +93,7 @@ public class CustomSecurityConfig {
 }
 ```
 
-**Ejemplo 1: Partir desde cero (sin URLs por defecto)**
+**Example 1: Start from scratch (no default URLs)**
 
 ```java
 @Bean
@@ -105,71 +105,71 @@ public SecurityUrlsConfig securityUrlsConfig() {
 }
 ```
 
-**Ejemplo 2: Usar URLs por defecto y agregar más**
+**Example 2: Use default URLs and add more**
 
 ```java
 @Bean
 public SecurityUrlsConfig securityUrlsConfig() {
     return SecurityUrlsConfig.withDefaults()
-        // Agregar URLs adicionales
+        // Add additional URLs
         .addPublicUrls("/public/**", "/health")
         .addProtectedUrls("/api/**")
         .build();
 }
 ```
 
-**Ejemplo 3: Usar URLs por defecto y limpiar selectivamente**
+**Example 3: Use default URLs and selectively clear**
 
 ```java
 @Bean
 public SecurityUrlsConfig securityUrlsConfig() {
     return SecurityUrlsConfig.withDefaults()
-        .clearProtectedUrls()  // Limpiar las protegidas por defecto
-        .addProtectedUrls("/api/**")  // Agregar las propias
+        .clearProtectedUrls()  // Clear default protected URLs
+        .addProtectedUrls("/api/**")  // Add your own
         .build();
 }
 ```
 
-**URLs por defecto de la librería:**
-- **Públicas:** `/oauth/**`, `/actuator/**`, `/swagger-ui/**`, `/v3/api-docs/**`
-- **Protegidas:** `/webhooks/**`
+**Library default URLs:**
+- **Public:** `/oauth/**`, `/actuator/**`, `/swagger-ui/**`, `/v3/api-docs/**`
+- **Protected:** `/webhooks/**`
 
-## Uso
+## Usage
 
-### Validación de permisos con @PreAuthorize
+### Permission Validation with @PreAuthorize
 
-La librería proporciona un `CustomPermissionEvaluator` que permite validar tanto authorities como scopes del JWT:
+The library provides a `CustomPermissionEvaluator` that allows validating both authorities and JWT scopes:
 
 ```java
 @RestController
 @RequestMapping("/api")
 public class MyController {
     
-    // Validar privilege o scope
+    // Validate privilege OR scope
     @PreAuthorize("hasPermission('', 'ADMIN', 'webhooks.write')")
     @PostMapping("/webhooks")
     public ResponseEntity<?> createWebhook() {
-        // Lógica del endpoint
+        // Endpoint logic
         return ResponseEntity.ok().build();
     }
     
-    // Solo validar authority
+    // Only validate authority
     @PreAuthorize("hasAuthority('ADMIN')")
     @DeleteMapping("/webhooks/{id}")
     public ResponseEntity<?> deleteWebhook(@PathVariable String id) {
-        // Lógica del endpoint
+        // Endpoint logic
         return ResponseEntity.ok().build();
     }
 }
 ```
 
-### Estructura del JWT
+### JWT Structure
 
-La librería espera que el JWT contenga los siguientes claims:
+The library expects the JWT to contain the following claims:
 
 ```json
 {
-  "sub": "usuario@example.com",
+  "sub": "user@example.com",
   "scope": "webhooks.read webhooks.write",
   "authorities": ["ROLE_USER", "ADMIN"],
   "iat": 1234567890,
@@ -177,29 +177,29 @@ La librería espera que el JWT contenga los siguientes claims:
 }
 ```
 
-Los scopes pueden ser:
-- Un string separado por espacios: `"scope": "read write"`
-- Una colección: `"scope": ["read", "write"]`
+Scopes can be:
+- A space-separated string: `"scope": "read write"`
+- A collection: `"scope": ["read", "write"]`
 
-## Compilación
+## Build
 
-Para compilar la librería:
+To build the library:
 
 ```bash
 mvn clean install
 ```
 
-Esto generará tres artefactos:
-- `plug-security-common-1.0.0.jar` - Módulo común
-- `plug-security-spring-boot-2-1.0.0.jar` - Para Spring Boot 2
-- `plug-security-spring-boot-3-1.0.0.jar` - Para Spring Boot 3
+This will generate three artifacts:
+- `plug-security-common-1.0.0.jar` - Common module
+- `plug-security-spring-boot-2-1.0.0.jar` - For Spring Boot 2
+- `plug-security-spring-boot-3-1.0.0.jar` - For Spring Boot 3
 
-## Estructura del proyecto
+## Project Structure
 
 ```
 plug-security/
-├── pom.xml                           # POM padre
-├── plug-security-common/             # Código compartido
+├── pom.xml                           # Parent POM
+├── plug-security-common/             # Shared code
 │   ├── pom.xml
 │   └── src/main/java/com/plug/security/
 │       ├── model/ApiError.java
@@ -219,9 +219,9 @@ plug-security/
         └── config/ResourceServerConfig.java
 ```
 
-## Respuestas de error
+## Error Responses
 
-La librería proporciona respuestas JSON estructuradas para errores de autenticación y autorización:
+The library provides structured JSON responses for authentication and authorization errors:
 
 **401 Unauthorized:**
 ```json
@@ -239,10 +239,10 @@ La librería proporciona respuestas JSON estructuradas para errores de autentica
 }
 ```
 
-## Licencia
+## License
 
-[Especificar licencia]
+[Specify license]
 
-## Contribución
+## Contributing
 
-[Instrucciones para contribuir al proyecto]
+[Instructions for contributing to the project]
